@@ -2,8 +2,15 @@
 #define _WBSWAN_H_
 #include <math/affine_transform.h>
 #include <math/matrix_utils.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #define SWAN_PIECE_BIT 8
-#define CFG swan_cfg_B128_K128
+#define DEBUG 1
+#define CFG swan_cfg_B64_K128
 enum swan_cipher_config_t
 {
     swan_cfg_B64_K128,
@@ -41,8 +48,8 @@ static MatGf2 make_special_rotate(int dim);
 
 
 static int ROL_A[] = {1, 1, 1};
-static int ROL_B[] = {3, 3, 3};
-static int ROL_C[] = {5, 5, 5};
+static int ROL_B[] = {2, 3, 3};
+static int ROL_C[] = {7, 5, 5};
 
 typedef struct swan_whitebox_helper
 {
@@ -65,7 +72,9 @@ typedef struct swan_wb_t
     uint32_t rounds;
     uint32_t block_size;
     uint32_t piece_count; // piece_count = block_size / 8, every 8 bit combined as a piece
-    uint64_t (*lut)[4][2][256];
+    swan_wb_semi (*lut)[4][256];
+    swan_wb_unit SE[8][256];
+    swan_wb_unit EE[8][256];
     CombinedAffine *P;
     CombinedAffine *B;
     CombinedAffine *C;
@@ -79,5 +88,15 @@ typedef struct swan_wb_t
 int swan_whitebox_64_init(const uint8_t *key, int enc, swan_whitebox_content *swc);
 
 
+ MatGf2 make_right_rotate_shift(int dim, int r1, int r2, int r3);
+ MatGf2 make_transposition_back(int dim);
+ MatGf2 make_transposition(int dim);
+ MatGf2 make_swithlane(int dim);
+ MatGf2 make_swithlane_64(int dim);
+ MatGf2 make_right_rotate_shift_64(int dim, int r1, int r2, int r3);
+ MatGf2 make_transposition_64(int dim);
+ MatGf2 make_transposition_back_64(int dim);
+
+void tobin(uint32_t x, int SIZE);
 
 #endif
