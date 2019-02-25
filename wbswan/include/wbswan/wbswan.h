@@ -63,7 +63,9 @@ typedef struct swan_whitebox_helper
     CombinedAffine *B;
     CombinedAffine *C;
     CombinedAffine *D;
+    CombinedAffine *PQ;
     uint8_t *key;
+    int weak_or_strong; //0 for weak , 1 for strong
 } swan_whitebox_helper;
 
 typedef struct swan_wb_t
@@ -78,9 +80,8 @@ typedef struct swan_wb_t
     CombinedAffine *P;
     CombinedAffine *B;
     CombinedAffine *C;
-
-
-
+    CombinedAffine *PQ;
+    int weak_or_strong; //0 for weak , 1 for strong
 } swan_whitebox_content;
 
 #define ROL16(x, n) ((x >> n) | (x << (16 - n)))
