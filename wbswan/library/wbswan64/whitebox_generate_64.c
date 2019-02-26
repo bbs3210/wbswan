@@ -202,19 +202,19 @@ int Key_Schedule(unsigned char *Seedkey, int KeyLen, unsigned char Direction, un
 }
 
 
-int _swan_whitebox_helper_init(swan_whitebox_helper *swh, uint8_t *key)
+int _swan_whitebox_helper_init(swan_whitebox_helper *swh, uint8_t *key, int weak_or_strong)
 {
 
     int block_size = swh->block_size;
     int semi_block = block_size / 2;
     swh->piece_count = semi_block / SWAN_PIECE_BIT;
     swh->key = key;
-
+    swh->weak_or_strong = weak_or_strong;
 
     return 0;
 }
 
-int swan_whitebox_64_helper_init(const uint8_t *key, swan_whitebox_helper *swh,int enc)
+int swan_whitebox_64_weak_helper_init(const uint8_t *key, swan_whitebox_helper *swh,int enc)
 // designed for swan_64_128
 {
 
@@ -224,12 +224,28 @@ int swan_whitebox_64_helper_init(const uint8_t *key, swan_whitebox_helper *swh,i
     swh->encrypt = enc;
     swh->rounds = swan_cfg_rounds[swh->cfg];
     swh->block_size = swan_cfg_blocksizes[swh->cfg];
-    return _swan_whitebox_helper_init(swh, key);
+    swh->weak_or_strong = 0;
+    return _swan_whitebox_helper_init(swh, key, 0);
+}
+
+int swan_whitebox_64_strong_helper_init(const uint8_t *key, swan_whitebox_helper *swh,int enc)
+// designed for swan_64_128
+{
+
+    // uint8_t rk[MAX_RK_SIZE];
+    int ret;
+    swh->cfg = CFG;
+    swh->encrypt = enc;
+    swh->rounds = swan_cfg_rounds[swh->cfg];
+    swh->block_size = swan_cfg_blocksizes[swh->cfg];
+    return _swan_whitebox_helper_init(swh, key, 1);
 }
 
 int _swan_whitebox_content_init(swan_whitebox_helper *swh, swan_whitebox_content *swc)
 {
     // TODO:
+    int i;
+
     swc->cfg = swh->cfg;
     swc->rounds = swh->rounds;
     swc->block_size = swh->block_size;
@@ -241,7 +257,18 @@ int _swan_whitebox_content_init(swan_whitebox_helper *swh, swan_whitebox_content
     swc->P = (CombinedAffine *)malloc((swh->rounds + 2)  * sizeof(CombinedAffine));
     swc->B = (CombinedAffine *)malloc(swh->rounds * sizeof(CombinedAffine));
     swc->C = (CombinedAffine *)malloc(swh->rounds * sizeof(CombinedAffine));
-    int i;
+    swc->weak_or_strong = swh->weak_or_strong;
+    if (swc->weak_or_strong) {
+        swc->PQ = (CombinedAffine *)malloc(swh->rounds * sizeof(CombinedAffine));
+        CombinedAffine *PQ_ptr = swc->PQ;
+        for (i = 0; i < (swh->rounds); i++)
+        {
+            combined_affine_init(PQ_ptr++, SWAN_PIECE_BIT, swh->piece_count);
+        }
+    } else {
+        swc->PQ = NULL;
+    }
+    
     CombinedAffine *B_ptr = swc->B;
     CombinedAffine *P_ptr = swc->P;
 
@@ -293,14 +320,21 @@ int _swan_whitebox_content_assemble(swan_whitebox_helper *swh, swan_whitebox_con
 
     P_ptr = swc->P;
 
-
+    CombinedAffine *PQ_ptr = swc->PQ;
     for (i = 0; i < swh->rounds ; i++)
     {
         //B * rotate * P'* X + B * rotate * p + b
 
         temp = GenMatGf2Mul(B_ptr->combined_affine->linear_map, rotate);
-        B_ptr->combined_affine->linear_map = GenMatGf2Mul(temp, P_ptr->combined_affine_inv->linear_map);
-        B_ptr->combined_affine->vector_translation = GenMatGf2Add(GenMatGf2Mul(temp, P_ptr->combined_affine_inv->vector_translation), B_ptr->combined_affine->vector_translation);
+        if (swc->weak_or_strong && (i%2==1)) {
+            B_ptr->combined_affine->linear_map = GenMatGf2Mul(temp, PQ_ptr->combined_affine_inv->linear_map);
+            B_ptr->combined_affine->vector_translation = GenMatGf2Add(GenMatGf2Mul(temp, PQ_ptr->combined_affine_inv->vector_translation), B_ptr->combined_affine->vector_translation);
+            PQ_ptr++;
+        } else {
+            B_ptr->combined_affine->linear_map = GenMatGf2Mul(temp, P_ptr->combined_affine_inv->linear_map);
+            B_ptr->combined_affine->vector_translation = GenMatGf2Add(GenMatGf2Mul(temp, P_ptr->combined_affine_inv->vector_translation), B_ptr->combined_affine->vector_translation);
+        }
+        
         P_ptr++;
         B_ptr++;
     }
@@ -480,7 +514,7 @@ int _swan_whitebox_content_assemble(swan_whitebox_helper *swh, swan_whitebox_con
 int swan_whitebox_64_init(const uint8_t *key, int enc, swan_whitebox_content *swc)
 {
     swan_whitebox_helper *swh = (swan_whitebox_helper *)malloc(sizeof(swan_whitebox_helper));
-    swan_whitebox_64_helper_init(key, swh,enc);
+    swan_whitebox_64_strong_helper_init(key, swh,enc);
     swan_whitebox_64_content_init(swh, swc);
     swan_whitebox_64_content_assemble(swh, swc);
    
