@@ -113,20 +113,7 @@ int swan_whitebox_encrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
         //SWITCHLANE
 
         *tempL = ApplyMatToU32(switchmat, *tempL);
-
-        swan_wb_semi LP;
-        MatGf2 mat_lp = NULL;
-        if (swc->weak_or_strong) {
-            LP = ApplyAffineToU32(*(swc->PQ->combined_affine), tempL);
-
-            mat_lp = NULL;
-            ReAllocatedMatGf2(32, 1, &mat_lp);
-            InitVecFromBit(LP, mat_lp);
-            MatGf2Add(GenMatGf2Mul((P_ptr + 1)->combined_affine->linear_map, (P_ptr + 1)->combined_affine_inv->vector_translation), mat_lp, &mat_lp);
-            LP = get32FromVec(mat_lp);
-        }
         
-
         // P for next
         LT[0] = ApplyAffineToU8((P_ptr + 1)->sub_affine[0], LT[0]);
         LT[1] = ApplyAffineToU8((P_ptr + 1)->sub_affine[1], LT[1]);
@@ -149,6 +136,26 @@ int swan_whitebox_encrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
         R[1] = tempd[1];
         R[2] = tempd[2];
         R[3] = tempd[3];
+
+        swan_wb_semi LP;
+        MatGf2 mat_lp = NULL;
+        if (swc->weak_or_strong) {
+            LT[0] = L[0];
+            LT[1] = L[1];
+            LT[2] = L[2];
+            LT[3] = L[3];
+            LP = ApplyAffineToU32(*(PQ_ptr->combined_affine), ApplyMatToU32(((P_ptr+1)->combined_affine_inv->linear_map), *tempL));
+
+            printf("\n%04llX:%04llX\n", *tempL, LP);
+
+            // mat_lp = NULL;
+            // ReAllocatedMatGf2(32, 1, &mat_lp);
+            // InitVecFromBit(LP, mat_lp);
+            // MatGf2Add(GenMatGf2Mul((P_ptr + 1)->combined_affine->linear_map, (P_ptr + 1)->combined_affine_inv->vector_translation), mat_lp, &mat_lp);
+            // LP = get32FromVec(mat_lp);
+        }
+
+        
 
         MatGf2 mat_x = NULL;
         ReAllocatedMatGf2(32, 1, &mat_x);
@@ -234,7 +241,7 @@ int swan_whitebox_encrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
         P_ptr++;
 
         PQ_ptr++;
-        
+
         
     }
 
