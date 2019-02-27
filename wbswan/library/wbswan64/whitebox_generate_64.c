@@ -362,7 +362,7 @@ int _swan_whitebox_content_assemble(swan_whitebox_helper *swh, swan_whitebox_con
             {
                 for (t = 0; t < 4; t++)
                 {
-                    randomNum[j][t] = 0;
+                    randomNum[j][t] = rand();
                 }
             }
 
@@ -463,6 +463,10 @@ int _swan_whitebox_content_assemble(swan_whitebox_helper *swh, swan_whitebox_con
                 }
                 P_ptr->sub_affine[k].vector_translation = GenMatAddU8(P_ptr->sub_affine[k].vector_translation, ApplyMatToU8(P_ptr->sub_affine[k].linear_map, switchxor));
 
+                if (swc->weak_or_strong && r%2==1) {
+                    PQ_ptr->sub_affine[k].vector_translation = GenMatAddU8(PQ_ptr->sub_affine[k].vector_translation, ApplyMatToU8(PQ_ptr->sub_affine[k].linear_map, switchxor));
+                }
+
                 for (i = 0; i < piece_range; i++)
                 {
 
@@ -503,6 +507,8 @@ int _swan_whitebox_content_assemble(swan_whitebox_helper *swh, swan_whitebox_con
             }
             B_ptr++;
             P_ptr++;
+            if (swc->weak_or_strong && r%2==1)
+                PQ_ptr++;
         }
     }
     
