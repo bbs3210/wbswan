@@ -146,7 +146,7 @@ int swan_whitebox_encrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
             LT[3] = L[3];
             LP = ApplyAffineToU32(*(PQ_ptr->combined_affine), ApplyMatToU32(((P_ptr+1)->combined_affine_inv->linear_map), *tempL));
 
-            printf("\n%04llX:%04llX\n", *tempL, LP);
+            // printf("\n%04llX:%04llX\n", *tempL, LP);
 
             // mat_lp = NULL;
             // ReAllocatedMatGf2(32, 1, &mat_lp);
@@ -376,6 +376,23 @@ int swan_whitebox_decrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
         L[2] = tempd[2];
         L[3] = tempd[3];
 
+        swan_wb_semi LP;
+        MatGf2 mat_lp = NULL;
+        if (swc->weak_or_strong) {
+            RT[0] = R[0];
+            RT[1] = R[1];
+            RT[2] = R[2];
+            RT[3] = R[3];
+            LP = ApplyAffineToU32(*(PQ_ptr->combined_affine), ApplyMatToU32(((P_ptr+1)->combined_affine_inv->linear_map), *tempR));
+
+            // printf("\n%04llX:%04llX\n", *tempR, LP);
+
+            // mat_lp = NULL;
+            // ReAllocatedMatGf2(32, 1, &mat_lp);
+            // InitVecFromBit(LP, mat_lp);
+            // MatGf2Add(GenMatGf2Mul((P_ptr + 1)->combined_affine->linear_map, (P_ptr + 1)->combined_affine_inv->vector_translation), mat_lp, &mat_lp);
+            // LP = get32FromVec(mat_lp);
+        }
         MatGf2 mat_x = NULL;
         ReAllocatedMatGf2(32, 1, &mat_x);
         InitVecFromBit(*((swan_wb_semi *)R), mat_x);
@@ -386,16 +403,20 @@ int swan_whitebox_decrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
         B_ptr++;
         i++;
 
+
         // next round 
 
-        RT[0] = R[0];
-        RT[1] = R[1];
-        RT[2] = R[2];
-        RT[3] = R[3];
+        if (swc->weak_or_strong) {
+            *tempR = LP;
+        } else {
+            RT[0] = R[0];
+            RT[1] = R[1];
+            RT[2] = R[2];
+            RT[3] = R[3];
+        }
 
         // start theta
         *tempR = ApplyAffineToU32(*(B_ptr->combined_affine), *tempR);
-
         //***************************************************************************
 
         //**********************************************************************************
@@ -403,7 +424,6 @@ int swan_whitebox_decrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
         //***********************************************************
 
         //start beta
-        RC[4];
         RC[0] = lut_ptr[swc->rounds - 1 - (i)][0][RT[0]];
         RC[1] = lut_ptr[swc->rounds - 1 - (i)][1][RT[1]];
         RC[2] = lut_ptr[swc->rounds - 1 - (i)][2][RT[2]];
@@ -448,7 +468,7 @@ int swan_whitebox_decrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
 
         P_ptr++;
         B_ptr++;
-        
+        PQ_ptr++;
 
     }
 

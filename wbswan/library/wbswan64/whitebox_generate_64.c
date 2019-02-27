@@ -525,8 +525,8 @@ int _swan_whitebox_content_assemble(swan_whitebox_helper *swh, swan_whitebox_con
 int swan_whitebox_64_init(const uint8_t *key, int enc, swan_whitebox_content *swc)
 {
     swan_whitebox_helper *swh = (swan_whitebox_helper *)malloc(sizeof(swan_whitebox_helper));
-    swan_whitebox_64_weak_helper_init(key, swh,enc);
-    // swan_whitebox_64_strong_helper_init(key, swh,enc);
+    // swan_whitebox_64_weak_helper_init(key, swh,enc);
+    swan_whitebox_64_strong_helper_init(key, swh,enc);
     swan_whitebox_64_content_init(swh, swc);
     swan_whitebox_64_content_assemble(swh, swc);
    
