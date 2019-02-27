@@ -422,3 +422,184 @@ int swan_whitebox_release(swan_whitebox_content *swc)
 
     return 0;
 }
+
+int swan_wb_export_to_bytes(const swan_whitebox_content *swc, uint8_t **dest)
+{
+    if (*dest != NULL)
+        return -1;
+    int sz = 0;
+    sz = sizeof(swan_whitebox_content);
+    // sz += swc->rounds * swc->aff_in_round * sizeof(AffineTransform);    //round_aff
+    sz += swc->rounds * swc->piece_count * sizeof(swan_wb_semi) * 256; //LUT
+    sz += 2 * swc->piece_count * sizeof(swan_wb_unit) * 256;           //SE
+    sz += 2 * swc->piece_count * sizeof(swan_wb_unit) * 256;           //EE
+
+    void **B_ptr_list = malloc(swc->rounds  * sizeof(void *));
+    void **P_ptr_list = malloc((2 + swc->rounds) * sizeof(void *));
+    void **P_ptr_sub_list = malloc((swc->rounds+2) * sizeof(void *) * 4);
+    void **P_ptr_inv_list = malloc((swc->rounds+2) * sizeof(void *));
+
+    int i;
+    int j;
+    int sum = 0;
+    for (i = 0; i < swc->rounds ; i++)
+    {
+
+        B_ptr_list[i] = ExportAffineToStr((swc->B+i)->combined_affine);
+        sz += *(uint32_t *)B_ptr_list[i];
+    }
+
+    for (i = 0; i < swc->rounds + 2; i++)
+    {
+
+        P_ptr_list[i] = ExportAffineToStr((swc->P+i)->combined_affine);
+        sz += *(uint32_t *)P_ptr_list[i];
+    }
+
+    for (i = 0; i < swc->rounds + 2; i++)
+    {
+
+        P_ptr_inv_list[i] = ExportAffineToStr((swc->P + i)->combined_affine_inv);
+        sz += *(uint32_t *)P_ptr_inv_list[i];
+    }
+
+    for (i = 0; i < (swc->rounds + 2); i++)
+    {
+        for(j= 0;j<4;j++,sum++){
+            P_ptr_sub_list[sum] = ExportAffineToStr((swc->P + i)->sub_affine + j);
+            sz += *(uint32_t *)P_ptr_sub_list[sum];
+        }
+       
+    }
+    
+
+
+
+    *dest = malloc(sz);
+    *((uint32_t *)*dest) = sz;
+    uint8_t *ds = *dest + sizeof(uint32_t);
+    memcpy(ds, swc, sizeof(swan_whitebox_content));
+    ds += sizeof(swan_whitebox_content);
+    int k;
+    k = swc->rounds * swc->piece_count * sizeof(swan_wb_semi) * 256;
+    memcpy(ds, swc->lut, k);
+    ds += k;
+
+    k = 2 * swc->piece_count * sizeof(swan_wb_unit) * 256;
+    memcpy(ds, swc->SE, k);
+    ds += k;
+
+    k = 2 * swc->piece_count *  sizeof(swan_wb_unit) * 256;
+    memcpy(ds, swc->EE, k);
+    ds += k;
+
+    for (i = 0; i < swc->rounds; i++)
+    {
+        k = *(uint32_t *)B_ptr_list[i];
+        memcpy(ds, B_ptr_list[i], k);
+        ds += k;
+    }
+
+    for (i = 0; i < swc->rounds + 2; i++)
+    {
+        k = *(uint32_t *)P_ptr_list[i];
+        memcpy(ds, P_ptr_list[i], k);
+        ds += k;
+    }
+
+    for (i = 0; i < swc->rounds + 2; i++)
+    {
+        k = *(uint32_t *)P_ptr_inv_list[i];
+        memcpy(ds, P_ptr_inv_list[i], k);
+        ds += k;
+    }
+    sum = 0;
+    for (i = 0; i < swc->rounds + 2;i++){
+        for (j = 0; j < 4; j++, sum++)
+        {
+            k = *(uint32_t *)P_ptr_sub_list[sum];
+            memcpy(ds, P_ptr_sub_list[sum], k);
+            ds += k;
+        }
+    }
+
+        return sz;
+}
+
+int swan_wb_import_from_bytes(const uint8_t *source, swan_whitebox_content *swc)
+{
+    const void *ptr = source;
+    ptr += sizeof(uint32_t);
+    
+    memcpy(swc, ptr, sizeof(swan_whitebox_content));
+    ptr += sizeof(swan_whitebox_content);
+
+    int i;
+    int j;
+    int k;
+    int sum = 0;
+    k = swc->rounds * swc->piece_count * sizeof(swan_wb_semi) * 256;
+    swc->lut = (swan_wb_semi(*)[4][256])malloc(k);
+    memcpy(swc->lut, ptr, k);
+    ptr += k;
+
+    k = 2 * swc->piece_count * sizeof(swan_wb_unit) * 256;
+    memcpy(swc->SE, ptr, k);
+    ptr += k;
+
+    k = 2 * swc->piece_count * sizeof(swan_wb_unit) * 256;
+    memcpy(swc->EE, ptr, k);
+    ptr += k;
+
+    swc->P = (CombinedAffine *)malloc((swc->rounds + 2) * sizeof(CombinedAffine));
+
+    swc->B = (CombinedAffine *)malloc(swc->rounds * sizeof(CombinedAffine));
+
+    CombinedAffine *B_ptr = swc->B;
+    CombinedAffine *P_ptr = swc->P;
+
+    for (i = 0; i < (swc->rounds); i++)
+    {
+
+        combined_affine_init(B_ptr++, SWAN_PIECE_BIT, swc->piece_count);
+       
+    }
+    for(i = 0;i < (swc->rounds + 2); i++){
+        combined_affine_init(P_ptr++, SWAN_PIECE_BIT, swc->piece_count);
+    }
+ 
+
+
+
+    for (i = 0; i < swc->rounds ; i++)
+    {
+        uint32_t aff_sz = *((uint32_t *)ptr);
+        *((swc->B+i)->combined_affine) = ImportAffineFromStr(ptr);
+        ptr += aff_sz;
+    }
+
+    for (i = 0; i < swc->rounds + 2; i++)
+    {
+        uint32_t aff_sz = *((uint32_t *)ptr);
+        *((swc->P+i)->combined_affine) = ImportAffineFromStr(ptr);
+        ptr += aff_sz;
+    }
+    for (i = 0; i < swc->rounds + 2; i++)
+    {
+        uint32_t aff_sz = *((uint32_t *)ptr);
+        *((swc->P + i)->combined_affine_inv) = ImportAffineFromStr(ptr);
+        ptr += aff_sz;
+    }
+
+    for (i = 0; i < swc->rounds + 2; i++)
+    {
+        for (j = 0; j < 4; j++, sum++)
+        {
+            uint32_t aff_sz = *((uint32_t *)ptr);
+            *((swc->P+i)->sub_affine +j) = ImportAffineFromStr(ptr);
+            ptr += aff_sz;
+        }
+    }
+
+    return 0;
+}
