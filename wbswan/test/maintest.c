@@ -54,15 +54,15 @@ int main()
     uint64_t end;
     uint64_t ans = 0;
     int i;
-    unsigned char in[8] = {0x01, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0};
+    unsigned char in[16] = {0x01, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, 0x01, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0};
     uint8_t key[16] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-    uint8_t out[8];
+    uint8_t out[16];
     swan_whitebox_content swc_enc;
     swan_whitebox_content swc_dec;
     begin = start_rdtsc();
     for (i = 0; i < TEST; i++)
     {
-        swan_whitebox_64_init(key, 1, &swc_enc);
+        swan_whitebox_128_init(key, 1, &swc_enc);
     }
     end = end_rdtsc();
     ans = (end - begin);
@@ -81,7 +81,7 @@ int main()
     swan_whitebox_release(&swc_enc);
     dump(out, sizeof(out));
     printf("\n");
-    swan_whitebox_64_init(key, 0, &swc_dec);
+    swan_whitebox_128_init(key, 0, &swc_dec);
 
     for (i = 0; i < TEST; i++)
     {
