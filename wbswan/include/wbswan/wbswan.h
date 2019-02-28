@@ -8,9 +8,9 @@ extern "C"
 {
 #endif
 
-#define SWAN_PIECE_BIT 8
-#define DEBUG 1
-#define CFG swan_cfg_B64_K128
+#define SWAN_PIECE_BIT 16
+#define DEBUG 0
+#define CFG swan_cfg_B128_K128
 enum swan_cipher_config_t
 {
     swan_cfg_B64_K128,
@@ -20,7 +20,7 @@ enum swan_cipher_config_t
     swan_cfg_B256_K256,
 };
 
-#define MAX_RK_SIZE 64
+#define MAX_RK_SIZE 128
 
 #if SWAN_PIECE_BIT == 8
 typedef uint32_t swan_wb_semi;
@@ -37,7 +37,7 @@ typedef uint32_t swan_wb_unit;
 
 #endif
 
-static int swan_cfg_rounds[] = {64, 1, 1, 64, 64};
+static int swan_cfg_rounds[] = {64, 64, 64, 64, 64};
 
 static int swan_cfg_keysizes[] = {128, 256, 128, 256, 256};
 
@@ -74,9 +74,9 @@ typedef struct swan_wb_t
     uint32_t rounds;
     uint32_t block_size;
     uint32_t piece_count; // piece_count = block_size / 8, every 8 bit combined as a piece
-    swan_wb_semi (*lut)[4][256];
-    swan_wb_unit SE[8][256];
-    swan_wb_unit EE[8][256];
+    swan_wb_semi (*lut)[4][2][256];
+    swan_wb_unit SE[16][256];
+    swan_wb_unit EE[16][256];
     CombinedAffine *P;
     CombinedAffine *B;
     CombinedAffine *C;
@@ -88,6 +88,7 @@ typedef struct swan_wb_t
 
 int swan_whitebox_64_init(const uint8_t *key, int enc, swan_whitebox_content *swc);
 
+int swan_whitebox_128_init(const uint8_t *key, int enc, swan_whitebox_content *swc);
 
  MatGf2 make_right_rotate_shift(int dim, int r1, int r2, int r3);
  MatGf2 make_transposition_back(int dim);

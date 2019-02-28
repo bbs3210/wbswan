@@ -94,13 +94,7 @@ int swan_whitebox_encrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
         printf("theta:\t%08X\n", *tempL);
 
         //start beta
-        //back to 8 in 8 out
-        //******************************************************************
-
-
-        //******************************************************************
-
-        //******************************************************************
+       
         uint32_t LC[4];
     
        
@@ -161,13 +155,23 @@ int swan_whitebox_encrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
             swan_wb_semi *ulp_ptr = (swan_wb_semi *) ULP;
             *ulp_ptr = ApplyAffineToU32(*(PQ_ptr->combined_affine), ApplyMatToU32(((P_ptr+1)->combined_affine_inv->linear_map), *tempL));
             *((swan_wb_semi *)L) = *ulp_ptr;
+
+            MatGf2 mat_x = NULL;
+            ReAllocatedMatGf2(32, 1, &mat_x);
+            InitVecFromBit(LP, mat_x);
+            MatGf2Add(GenMatGf2Mul((tca)->combined_affine->linear_map, (tca)->combined_affine_inv->vector_translation), mat_x, &mat_x);
+            LP = get32FromVec(mat_x);
+
+        } else {
+
+            MatGf2 mat_x = NULL;
+            ReAllocatedMatGf2(32, 1, &mat_x);
+            InitVecFromBit(*((swan_wb_semi *)L), mat_x);
+            MatGf2Add(GenMatGf2Mul((tca)->combined_affine->linear_map, (tca)->combined_affine_inv->vector_translation), mat_x, &mat_x);
+            *((swan_wb_semi *)L) = get32FromVec(mat_x);
         }
 
-        MatGf2 mat_x = NULL;
-        ReAllocatedMatGf2(32, 1, &mat_x);
-        InitVecFromBit(LP, mat_x);
-        MatGf2Add(GenMatGf2Mul((tca)->combined_affine->linear_map, (tca)->combined_affine_inv->vector_translation), mat_x, &mat_x);
-        LP = get32FromVec(mat_x);
+
 
         // MatGf2 mat_lp = NULL;
         // if (swc->weak_or_strong) {
@@ -193,13 +197,7 @@ int swan_whitebox_encrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
         //     // LP = get32FromVec(mat_lp);
         // }
 
-        printf("Round %d:\n", i);
-        dump(L, 4);
-        printf("\n");
-        dump(R, 4);
-        printf("\n");
-        printf("%08X\n", LP);
-
+       
         B_ptr++;
         P_ptr++;
         i++;
@@ -261,7 +259,7 @@ int swan_whitebox_encrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
         if (swc->weak_or_strong){
             *((swan_wb_semi *)tempd) = ApplyAffineToU32(*((P_ptr + 2)->combined_affine), ApplyAffineToU32(*((PQ_ptr)->combined_affine_inv), *((uint32_t *)L)));
         } else {
-                    *((swan_wb_semi *)tempd) = ApplyAffineToU32(*((P_ptr + 2)->combined_affine), ApplyAffineToU32(*((P_ptr)->combined_affine_inv), *((uint32_t *)L)));
+            *((swan_wb_semi *)tempd) = ApplyAffineToU32(*((P_ptr + 2)->combined_affine), ApplyAffineToU32(*((P_ptr)->combined_affine_inv), *((uint32_t *)L)));
         }
 
         L[0] = R[0] ^ LT[0];
@@ -285,11 +283,7 @@ int swan_whitebox_encrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
 
         PQ_ptr++;
 
-        printf("Round %d:\n", i);
-        dump(L, 4);
-        printf("\n");
-        dump(R, 4);
-        printf("\n");
+       
 
         
     }
@@ -403,10 +397,17 @@ int swan_whitebox_decrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
 
         // P for next and 
 
-        RT[0] = ApplyAffineToU8((P_ptr + 1)->sub_affine[0], RT[0]);
-        RT[1] = ApplyAffineToU8((P_ptr + 1)->sub_affine[1], RT[1]);
-        RT[2] = ApplyAffineToU8((P_ptr + 1)->sub_affine[2], RT[2]);
-        RT[3] = ApplyAffineToU8((P_ptr + 1)->sub_affine[3], RT[3]);
+        printf("\t%08X\n", *tempR);
+        CombinedAffine * tca = NULL;
+        if (i==0) {
+            tca = P_ptr+1;
+        } else {
+            tca = P_ptr+1;
+        }
+        RT[0] = ApplyAffineToU8((tca)->sub_affine[0], RT[0]);
+        RT[1] = ApplyAffineToU8((tca)->sub_affine[1], RT[1]);
+        RT[2] = ApplyAffineToU8((tca)->sub_affine[2], RT[2]);
+        RT[3] = ApplyAffineToU8((tca)->sub_affine[3], RT[3]);
 
 
   
@@ -432,21 +433,26 @@ int swan_whitebox_decrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
             RT[1] = R[1];
             RT[2] = R[2];
             RT[3] = R[3];
-            LP = ApplyAffineToU32(*(PQ_ptr->combined_affine), ApplyMatToU32(((P_ptr+1)->combined_affine_inv->linear_map), *tempR));
+            LP = *tempR;
+            swan_wb_unit ULP[4];
+            swan_wb_semi *ulp_ptr = (swan_wb_semi *)ULP;
+            *ulp_ptr = ApplyAffineToU32(*(PQ_ptr->combined_affine), ApplyMatToU32(((P_ptr + 1)->combined_affine_inv->linear_map), *tempR));
+            *((swan_wb_semi *)R) = *ulp_ptr;
 
-            // printf("\n%04llX:%04llX\n", *tempR, LP);
+            MatGf2 mat_x = NULL;
+            ReAllocatedMatGf2(32, 1, &mat_x);
+            InitVecFromBit(LP, mat_x);
+            MatGf2Add(GenMatGf2Mul((tca)->combined_affine->linear_map, (tca)->combined_affine_inv->vector_translation), mat_x, &mat_x);
+            LP = get32FromVec(mat_x);
 
-            // mat_lp = NULL;
-            // ReAllocatedMatGf2(32, 1, &mat_lp);
-            // InitVecFromBit(LP, mat_lp);
-            // MatGf2Add(GenMatGf2Mul((P_ptr + 1)->combined_affine->linear_map, (P_ptr + 1)->combined_affine_inv->vector_translation), mat_lp, &mat_lp);
-            // LP = get32FromVec(mat_lp);
+        } else {
+            MatGf2 mat_x = NULL;
+            ReAllocatedMatGf2(32, 1, &mat_x);
+            InitVecFromBit(*((swan_wb_semi *)R), mat_x);
+            MatGf2Add(GenMatGf2Mul((tca)->combined_affine->linear_map, (tca)->combined_affine_inv->vector_translation), mat_x, &mat_x);
+            *((swan_wb_semi *)R) = get32FromVec(mat_x);
         }
-        MatGf2 mat_x = NULL;
-        ReAllocatedMatGf2(32, 1, &mat_x);
-        InitVecFromBit(*((swan_wb_semi *)R), mat_x);
-        MatGf2Add(GenMatGf2Mul((P_ptr + 1)->combined_affine->linear_map, (P_ptr + 1)->combined_affine_inv->vector_translation), mat_x, &mat_x);
-        *((swan_wb_semi *)R) = get32FromVec(mat_x);
+
 
         P_ptr++;
         B_ptr++;
@@ -495,9 +501,15 @@ int swan_whitebox_decrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
         RT[2] = ApplyAffineToU8((P_ptr + 1)->sub_affine[2], RT[2]);
         RT[3] = ApplyAffineToU8((P_ptr + 1)->sub_affine[3], RT[3]);
 
+        if (swc->weak_or_strong)
+        {
+            *((swan_wb_semi *)tempd) = ApplyAffineToU32(*((P_ptr + 2)->combined_affine), ApplyAffineToU32(*((PQ_ptr)->combined_affine_inv), *((uint32_t *)R)));
+        }
+        else
+        {
+            *((swan_wb_semi *)tempd) = ApplyAffineToU32(*((P_ptr + 2)->combined_affine), ApplyAffineToU32(*((P_ptr)->combined_affine_inv), *((uint32_t *)R)));
+        }
 
-    
-        *((swan_wb_semi *)tempd) = ApplyAffineToU32(*((P_ptr + 2)->combined_affine), ApplyAffineToU32(*((P_ptr)->combined_affine_inv), *((uint32_t *)R)));
 
         R[0] = L[0] ^ RT[0];
         R[1] = L[1] ^ RT[1];
