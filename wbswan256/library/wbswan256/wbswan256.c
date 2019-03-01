@@ -40,15 +40,15 @@ MatGf2 make_right_rotate_shift_128(int dim, int r1, int r2, int r3)
     int i;
     for (i = 0; i < 32; i++)
     {
-        MatGf2Set(ind, i, ((i + 32 - r3) % 32 + 0), 1);
+        MatGf2Set(ind, i, ((i + 32 - 0) % 32 + 0), 1);
     }
     for (i = 32; i < 64; i++)
     {
-        MatGf2Set(ind, i, (i + 32 - r2) % 32 + 32, 1);
+        MatGf2Set(ind, i, (i + 32 - 0) % 32 + 32, 1);
     }
     for (i = 64; i < 96; i++)
     {
-        MatGf2Set(ind, i, (i + 32 - r1) % 32 + 64, 1);
+        MatGf2Set(ind, i, (i + 32 - 0) % 32 + 64, 1);
     }
     for (i = 96; i < 128; i++)
     {
@@ -61,7 +61,7 @@ MatGf2 make_transposition_128(int dim)
 {
     // uint8_t rot[32] = {0, 16, 32, 48, 1, 17, 33, 49, 2, 18, 34, 50, 3, 19, 35, 51};
 
-    uint8_t rot[32] = {0, 32, 64, 96, 1, 33, 65, 97, 2, 34, 66, 98, 3, 35, 67, 99, 4, 36, 68, 100, 5, 37, 69, 101, 6, 38, 70, 102, 7, 39, 70, 102};
+    uint8_t rot[32] = {0, 32, 64, 96, 1, 33, 65, 97, 2, 34, 66, 98, 3, 35, 67, 99, 4, 36, 68, 100, 5, 37, 69, 101, 6, 38, 70, 102, 7, 39, 71, 103};
     MatGf2 ind = GenMatGf2(dim, dim);
     int i;
     int j;
@@ -72,8 +72,10 @@ MatGf2 make_transposition_128(int dim)
 
         for (j = 0; j < 32; j++)
         {
-            MatGf2Set(ind, row++, rot[j] + 4 * (i - 1), 1);
+            MatGf2Set(ind, row++, rot[j] + 8 * (i - 1), 1);
+            // printf("%4d", rot[j] + 8 * (i - 1));
         }
+        // printf("\n");
     }
     return ind;
 }

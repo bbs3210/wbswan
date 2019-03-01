@@ -4,10 +4,15 @@
 #include <wbswan/wbswan.h>
 #include <time.h>
 
-#define DELTA1 0x9e3779b9
-#define DELTA2 0x7f4a7c15
-#define DELTA3 0xf39cc060
-#define DELTA4 0x5cedc834
+// #define DELTA1 0x9e3779b9
+// #define DELTA2 0x7f4a7c15
+// #define DELTA3 0xf39cc060
+// #define DELTA4 0x5cedc834
+
+#define DELTA1 0x00
+#define DELTA2 0x00
+#define DELTA3 0x00
+#define DELTA4 0x00
 
 const uint32_t delta[4] = {DELTA4, DELTA3, DELTA2, DELTA1};
 
@@ -303,11 +308,11 @@ int _swan_whitebox_content_assemble(swan_whitebox_helper *swh, swan_whitebox_con
                     {
                         uint8_t t8;
  
-                            t8 = ApplyAffineToU8((B_ptr)->sub_affine_inv[4 * k + n], i) ^ ((key_schedule[r][k] >> (8 * i)) && 0x000000ff);
+                            t8 = ApplyAffineToU8((B_ptr)->sub_affine_inv[4 * k + n], i) ^ ((key_schedule[r][k] >> (8 * n)) && 0x000000ff);
                         
                         uint32_t yc[4] = {0};
 
-                        t8 = (S[(t8 >> 4) & 0x0f]) << 4 | (S[t8 & 0x0f]);
+                        // t8 = (S[(t8 >> 4) & 0x0f]) << 4 | (S[t8 & 0x0f]);
                         int t = 0;
 
                         if (n == 0)
@@ -391,11 +396,11 @@ int _swan_whitebox_content_assemble(swan_whitebox_helper *swh, swan_whitebox_con
                     {
                         uint8_t t8;
 
-                        t8 = ApplyAffineToU8((B_ptr)->sub_affine_inv[4 * k + n], i) ^ ((key_schedule[r][k] >> (8 * i)) && 0x000000ff);
+                        t8 = ApplyAffineToU8((B_ptr)->sub_affine_inv[4 * k + n], i) ^ ((key_schedule[r][k] >> (8 * n)) && 0x000000ff);
                        
                         uint32_t yc[4] = {0};
 
-                        t8 = (S[(t8 >> 4) & 0x0f]) << 4 | (S[t8 & 0x0f]);
+                        // t8 = (S[(t8 >> 4) & 0x0f]) << 4 | (S[t8 & 0x0f]);
                         int t = 0;
 
                         if (n == 0)
