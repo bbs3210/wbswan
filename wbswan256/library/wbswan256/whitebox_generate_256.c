@@ -204,10 +204,10 @@ int _swan_whitebox_content_init(swan_whitebox_helper *swh, swan_whitebox_content
     for (i = 0; i < (swh->rounds); i++)
     {
 
-        ind_combined_affine_init(B_ptr++, SWAN_PIECE_BIT / 4, swh->piece_count * 4);
+        combined_affine_init(B_ptr++, SWAN_PIECE_BIT / 4, swh->piece_count * 4);
         ind_combined_affine_init(C_ptr++, SWAN_PIECE_BIT, swh->piece_count);
-        ind_combined_affine_init(D_ptr++, SWAN_PIECE_BIT, swh->piece_count);
-        ind_combined_affine_init(E_ptr++, SWAN_PIECE_BIT, swh->piece_count);
+        combined_affine_init(D_ptr++, SWAN_PIECE_BIT, swh->piece_count);
+        combined_affine_init(E_ptr++, SWAN_PIECE_BIT, swh->piece_count);
     }
     for (i = 0; i < (swh->rounds + 2); i++)
     {
