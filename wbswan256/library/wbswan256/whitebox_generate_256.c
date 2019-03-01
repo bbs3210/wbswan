@@ -4,15 +4,15 @@
 #include <wbswan/wbswan.h>
 #include <time.h>
 
-// #define DELTA1 0x9e3779b9
-// #define DELTA2 0x7f4a7c15
-// #define DELTA3 0xf39cc060
-// #define DELTA4 0x5cedc834
+#define DELTA1 0x9e3779b9
+#define DELTA2 0x7f4a7c15
+#define DELTA3 0xf39cc060
+#define DELTA4 0x5cedc834
 
-#define DELTA1 0x00
-#define DELTA2 0x00
-#define DELTA3 0x00
-#define DELTA4 0x00
+// #define DELTA1 0x00
+// #define DELTA2 0x00
+// #define DELTA3 0x00
+// #define DELTA4 0x00
 
 const uint32_t delta[4] = {DELTA4, DELTA3, DELTA2, DELTA1};
 
