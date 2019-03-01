@@ -40,15 +40,15 @@ MatGf2 make_right_rotate_shift_128(int dim, int r1, int r2, int r3)
     int i;
     for (i = 0; i < 32; i++)
     {
-        MatGf2Set(ind, i, ((i + 32 - 0) % 32 + 0), 1);
+        MatGf2Set(ind, i, ((i + 32 - r3) % 32 + 0), 1);
     }
     for (i = 32; i < 64; i++)
     {
-        MatGf2Set(ind, i, (i + 32 - 0) % 32 + 32, 1);
+        MatGf2Set(ind, i, (i + 32 - r2) % 32 + 32, 1);
     }
     for (i = 64; i < 96; i++)
     {
-        MatGf2Set(ind, i, (i + 32 - 0) % 32 + 64, 1);
+        MatGf2Set(ind, i, (i + 32 - r1) % 32 + 64, 1);
     }
     for (i = 96; i < 128; i++)
     {
@@ -73,9 +73,7 @@ MatGf2 make_transposition_128(int dim)
         for (j = 0; j < 32; j++)
         {
             MatGf2Set(ind, row++, rot[j] + 8 * (i - 1), 1);
-            // printf("%4d", rot[j] + 8 * (i - 1));
         }
-        // printf("\n");
     }
     return ind;
 }
@@ -163,8 +161,6 @@ int swan_whitebox_encrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
         }
 
         *tempL = temp;
-
-
 
         *tempL = ApplyAffineToU128(*(D_ptr->combined_affine), *tempL);
 
@@ -412,9 +408,9 @@ int swan_whitebox_decrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
 
         out[i] = swc->EE[16 + i][*((uint8_t *)L + i)];
     }
-    for (i = 8; i < 32; i++)
+    for (i = 16; i < 32; i++)
     {
-        out[i] = swc->EE[i - 16][*((uint8_t *)R + i)];
+        out[i] = swc->EE[i - 16][*((uint8_t *)R + i - 16)];
     }
 
     return 0;
