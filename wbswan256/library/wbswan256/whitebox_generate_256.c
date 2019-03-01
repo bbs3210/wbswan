@@ -312,7 +312,7 @@ int _swan_whitebox_content_assemble(swan_whitebox_helper *swh, swan_whitebox_con
                         
                         uint32_t yc[4] = {0};
 
-                        // t8 = (S[(t8 >> 4) & 0x0f]) << 4 | (S[t8 & 0x0f]);
+                        t8 = (S[(t8 >> 4) & 0x0f]) << 4 | (S[t8 & 0x0f]);
                         int t = 0;
 
                         if (n == 0)
@@ -400,7 +400,7 @@ int _swan_whitebox_content_assemble(swan_whitebox_helper *swh, swan_whitebox_con
                        
                         uint32_t yc[4] = {0};
 
-                        // t8 = (S[(t8 >> 4) & 0x0f]) << 4 | (S[t8 & 0x0f]);
+                        t8 = (S[(t8 >> 4) & 0x0f]) << 4 | (S[t8 & 0x0f]);
                         int t = 0;
 
                         if (n == 0)

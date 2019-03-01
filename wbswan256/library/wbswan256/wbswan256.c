@@ -248,7 +248,7 @@ int swan_whitebox_encrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
         out[i] = swc->EE[i][*((uint8_t *)L + i)];
     }
 
-    for (i = 8; i < 32; i++)
+    for (i = 16; i < 32; i++)
     {
         out[i] = swc->EE[i][*((uint8_t *)R + i - 16)];
     }
@@ -281,9 +281,9 @@ int swan_whitebox_decrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
     {
         tempIn[i] = swc->SE[i + 16][in[i]];
     }
-    for (i = 8; i < 32; i++)
+    for (i = 16; i < 32; i++)
     {
-        tempIn[i] = swc->SE[i - 16][in[i]];
+        tempIn[i] = swc->SE[i][in[i]];
     }
 
     L[0] = LT[0] = *((uint32_t *)tempIn);
