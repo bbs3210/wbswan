@@ -407,7 +407,7 @@ int swan_whitebox_decrypt(const uint8_t *in, uint8_t *out, swan_whitebox_content
         out[i] = swc->EE[8+i][*((uint8_t *)L + i)];
     }
     for(i = 8;i<16;i++){
-        out[i] = swc->EE[i-8][*((uint8_t *)R + i)];
+        out[i] = swc->EE[i-8][*((uint8_t *)R + i - 8)];
     }
 
 

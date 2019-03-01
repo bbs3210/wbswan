@@ -453,14 +453,15 @@ int _swan_whitebox_content_assemble(swan_whitebox_helper *swh, swan_whitebox_con
     }
 
     // generate the P*C*rotate matrix
-    MatGf2 switchmat = make_swithlane_128(128);
+    // MatGf2 switchmat = make_swithlane_128(128);
     CombinedAffine *D_ptr = swc->D;
     P_ptr = swc->P + 1;
     C_ptr = swc->C;
 
     for (i = 0; i < swc->rounds; i++)
     {
-        MatGf2 temp = GenMatGf2Mul(P_ptr->combined_affine->linear_map, switchmat);
+        // MatGf2 temp = GenMatGf2Mul(P_ptr->combined_affine->linear_map, switchmat);
+        MatGf2 temp = P_ptr->combined_affine->linear_map;
         D_ptr->combined_affine->linear_map = GenMatGf2Mul(temp, C_ptr->combined_affine_inv->linear_map);
         D_ptr->combined_affine->vector_translation = GenMatGf2Mul(D_ptr->combined_affine->linear_map, C_ptr->combined_affine->vector_translation);
         D_ptr++;
